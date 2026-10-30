@@ -743,4 +743,392 @@
     init();
   }
 
+  // ==========================================
+  // REAL MODE — WebSocket Backend Integration
+  // ==========================================
+  const WS_URL = 'ws://localhost:8765';
+  let REAL_MODE = false;
+  let ws = null;
+  let wsReconnectTimer = null;
+  let realTotalTested = 0;
+
+  // Cache extra elements for real mode
+  const realEl = {
+    backendStatus:  document.getElementById('backend-status'),
+    btnRealMode:    document.getElementById('btn-real-mode'),
+    realModeLabel:  document.getElementById('real-mode-label'),
+    realOptions:    document.getElementById('real-mode-options'),
+    btnRealConnect: document.getElementById('btn-real-connect'),
+    adbMethod:      document.getElementById('adb-method-select'),
+    pinStart:       document.getElementById('pin-start-input'),
+    pinEnd:         document.getElementById('pin-end-input'),
+    modeTag:        document.getElementById('mode-tag'),
+  };
+
+  /* ── WebSocket connection ── */
+  function connectWS() {
+    if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+    try {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        setBackendStatus(true);
+        appendLog('<span class="log-ok">[BACKEND] Conectado al servidor Python ✔</span>');
+      };
+
+      ws.onclose = () => {
+        setBackendStatus(false);
+        ws = null;
+        if (REAL_MODE) {
+          // Reintentar cada 4s mientras modo real esté activo
+          wsReconnectTimer = setTimeout(connectWS, 4000);
+        }
+      };
+
+      ws.onerror = () => {
+        setBackendStatus(false);
+      };
+
+      ws.onmessage = (e) => {
+        try { handleWSMessage(JSON.parse(e.data)); } catch {}
+      };
+    } catch (err) {
+      setBackendStatus(false);
+    }
+  }
+
+  function sendWS(obj) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(obj));
+      return true;
+    }
+    appendLog('<span class="log-fail">[ERROR] Backend desconectado. Inicia server.py primero.</span>');
+    return false;
+  }
+
+  function setBackendStatus(online) {
+    if (!realEl.backendStatus) return;
+    if (online) {
+      realEl.backendStatus.className = 'backend-badge backend-online';
+      realEl.backendStatus.innerHTML = '<span class="icon">⬡</span> BACKEND: ONLINE';
+    } else {
+      realEl.backendStatus.className = 'backend-badge backend-offline';
+      realEl.backendStatus.innerHTML = '<span class="icon">⬡</span> BACKEND: OFFLINE';
+    }
+  }
+
+  /* ── Toggle Modo Real / Simulación ── */
+  function toggleRealMode() {
+    REAL_MODE = !REAL_MODE;
+
+    if (REAL_MODE) {
+      // Activar modo real
+      realEl.btnRealMode.classList.add('real-active');
+      realEl.realModeLabel.textContent = 'REAL';
+      realEl.realOptions.style.display = 'block';
+      if (realEl.modeTag) {
+        realEl.modeTag.classList.add('real-mode-active');
+        realEl.modeTag.innerHTML = '<span class="pulse-dot"></span> MODO REAL v4.0 // ADB ACTIVO';
+      }
+      appendLog('<span style="color:#ffaa00">[MODO REAL] Activado — conecta al TV y presiona INICIAR PRUEBA</span>');
+      connectWS();
+      playCyberTone(1300, 0.12, 'sine');
+    } else {
+      // Volver a simulación
+      realEl.btnRealMode.classList.remove('real-active');
+      realEl.realModeLabel.textContent = 'SIM';
+      realEl.realOptions.style.display = 'none';
+      if (realEl.modeTag) {
+        realEl.modeTag.classList.remove('real-mode-active');
+        realEl.modeTag.innerHTML = '<span class="pulse-dot"></span> PROTOTIPO V4.0 // MULTI-THREAD SIM';
+      }
+      if (ws) { ws.close(); ws = null; }
+      if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+      setBackendStatus(false);
+      appendLog('<span style="color:#80deea">[MODO SIM] Regresando a simulación local.</span>');
+      playCyberTone(700, 0.1, 'triangle');
+    }
+  }
+
+  /* ── Conectar al TV (real) ── */
+  function connectRealTV() {
+    if (!REAL_MODE) return;
+    const ip     = elements.ipAddress.value.trim();
+    const port   = elements.portInput.value.trim() || '5555';
+    const device = elements.deviceSelect.value;
+
+    if (!ip) {
+      appendLog('<span class="log-fail">[ERROR] Introduce la IP del TV antes de conectar.</span>');
+      return;
+    }
+
+    sendWS({ cmd: 'connect', ip, port: parseInt(port), device });
+  }
+
+  /* ── Override startProcess para modo real ── */
+  const _origStart = startProcess;
+  function startProcess() {
+    if (!REAL_MODE) { _origStart(); return; }
+
+    if (STATE.status === 'RUNNING') return;
+
+    const ip       = elements.ipAddress.value.trim();
+    const port     = elements.portInput.value.trim() || '5555';
+    const device   = elements.deviceSelect.value;
+    const method   = realEl.adbMethod ? realEl.adbMethod.value : 'text';
+    const pinStart = parseInt((realEl.pinStart ? realEl.pinStart.value : '0') || '0', 10);
+    const pinEnd   = parseInt((realEl.pinEnd   ? realEl.pinEnd.value   : '9999') || '9999', 10);
+
+    if (!ip) {
+      appendLog('<span class="log-fail">[ERROR] Introduce la IP del TV.</span>');
+      return;
+    }
+
+    const sent = sendWS({
+      cmd: 'start',
+      ip,
+      port: parseInt(port),
+      device,
+      entry_method: method,
+      pin_start: pinStart,
+      pin_end:   pinEnd
+    });
+
+    if (sent) {
+      STATE.status = 'RUNNING';
+      realTotalTested = 0;
+      elements.btnStart.classList.add('active');
+      elements.btnPause.classList.remove('active');
+      elements.btnStop.classList.remove('active');
+
+      // Iniciar cronómetro local (visual)
+      STATE.startTime = Date.now() - STATE.elapsedMs;
+      if (!STATE.timerInterval) {
+        STATE.timerInterval = setInterval(() => {
+          STATE.elapsedMs = Date.now() - STATE.startTime;
+          elements.timerDisplay.textContent = formatTimer(STATE.elapsedMs);
+        }, 35);
+      }
+      elements.tvSpinner.style.animationPlayState = 'running';
+      elements.tvLed.style.background = '#ffaa00';
+      elements.tvLed.style.boxShadow = '0 0 10px #ffaa00';
+      elements.threadsActiveVal.textContent = 'REAL — ACTIVO';
+      playCyberTone(1200, 0.1, 'sine');
+    }
+  }
+
+  /* ── Override pauseProcess para modo real ── */
+  const _origPause = pauseProcess;
+  function pauseProcess() {
+    if (!REAL_MODE) { _origPause(); return; }
+    if (STATE.status === 'PAUSED') return;
+    sendWS({ cmd: 'pause' });
+  }
+
+  /* ── Override stopAndResetProcess para modo real ── */
+  const _origStop = stopAndResetProcess;
+  function stopAndResetProcess() {
+    if (!REAL_MODE) { _origStop(); return; }
+    sendWS({ cmd: 'stop' });
+    STATE.status = 'STOPPED';
+    realTotalTested = 0;
+    STATE.elapsedMs = 0;
+    if (STATE.timerInterval) { clearInterval(STATE.timerInterval); STATE.timerInterval = null; }
+    elements.timerDisplay.textContent = '00:00:00:00';
+    elements.btnStart.classList.remove('active');
+    elements.btnPause.classList.remove('active');
+    elements.btnStop.classList.add('active');
+    elements.threads.forEach(t => t.row.classList.remove('thread-winner'));
+    elements.centerTitle.textContent = 'ESTADO DEL PROCESO (MULTI-HILO)';
+    THREADS.forEach((t, i) => { t.currentPin = t.rangeStart; t.testedCount = 0; updateThreadDisplay(i, formatPin(t.rangeStart)); });
+    updateGlobalProgress();
+    elements.tvSpinner.style.display = 'block';
+    elements.tvLed.style.background = '#00e5ff';
+    elements.tvLed.style.boxShadow = '0 0 8px #00e5ff';
+    elements.threadsActiveVal.textContent = '5 / 5 (Listo)';
+    playCyberTone(350, 0.15, 'sawtooth');
+  }
+
+  /* ── Manejar mensajes del backend ── */
+  function handleWSMessage(msg) {
+    switch (msg.type) {
+
+      case 'init':
+        if (msg.adb_available) {
+          appendLog(`<span class="log-ok">[BACKEND] ADB disponible: ${msg.adb_path}</span>`);
+        } else {
+          appendLog(`<span class="log-fail">[BACKEND] ADB no encontrado: ${msg.adb_path}</span>`);
+          appendLog('<span class="log-warn">[BACKEND] Android TV requiere ADB. Descarga platform-tools.</span>');
+        }
+        break;
+
+      case 'connect_result':
+        if (msg.success) {
+          STATE.connected = true;
+          elements.connBadge.className = 'status-badge badge-connected';
+          elements.connBadge.innerHTML = '<span class="badge-icon">✔</span><span class="badge-text">Conectado</span>';
+          elements.netStatusVal.textContent = 'Conectado (Real)';
+          elements.netStatusVal.className = 'status-val val-success';
+          appendLog(`<span class="log-ok">[REAL] Conectado: ${msg.message}</span>`);
+          playCyberTone(900, 0.08, 'triangle');
+        } else {
+          STATE.connected = false;
+          elements.connBadge.className = 'status-badge badge-disconnected';
+          elements.connBadge.innerHTML = '<span class="badge-icon">✖</span><span class="badge-text">Fallo</span>';
+          elements.netStatusVal.textContent = 'Desconectado';
+          elements.netStatusVal.className = 'status-val val-fail';
+          appendLog(`<span class="log-fail">[REAL] Fallo de conexión: ${msg.message}</span>`);
+          playCyberTone(300, 0.12, 'sawtooth');
+        }
+        break;
+
+      case 'started':
+        appendLog(`<span class="log-ok">[REAL] ${msg.message}</span>`);
+        break;
+
+      case 'attempt': {
+        const tid = msg.thread;
+        const pinStr = msg.pin;
+        realTotalTested = msg.total;
+
+        // Actualizar hilo visual
+        const t = THREADS[tid];
+        if (t) {
+          t.currentPin = parseInt(pinStr, 10);
+          t.testedCount = Math.min(2000, Math.max(0, t.currentPin - t.rangeStart));
+          updateThreadDisplay(tid, pinStr);
+        }
+
+        // Progreso global con total real
+        const globalPct = ((realTotalTested / 10000) * 100).toFixed(1);
+        elements.globalProgressFill.style.width = `${globalPct}%`;
+        elements.globalProgressPct.textContent = `${globalPct}%`;
+        elements.globalProgressCount.textContent = realTotalTested;
+
+        playCyberTone(900, 0.02, 'sine', 0.04);
+        break;
+      }
+
+      case 'result':
+        if (msg.result === 'lockout') {
+          appendLog(`<span class="log-warn">[LOCKOUT] ${msg.message}</span>`);
+          playCyberTone(220, 0.2, 'sawtooth');
+        } else if (msg.result === 'error') {
+          appendLog(`<span class="log-fail">[ERROR] ${msg.message}</span>`);
+        } else if (msg.result === 'sent') {
+          // Roku: PIN enviado
+          appendLog(`<span class="log-sent">[ROKU] ${msg.message}</span>`);
+        }
+        break;
+
+      case 'found': {
+        const wTid = msg.thread;
+        const wPin = msg.pin;
+        const wTname = THREADS[wTid] ? THREADS[wTid].name : `HILO ${wTid + 1}`;
+
+        STATE.status = 'FOUND';
+        if (STATE.timerInterval) { clearInterval(STATE.timerInterval); STATE.timerInterval = null; }
+        elements.btnStart.classList.remove('active');
+        elements.btnPause.classList.remove('active');
+
+        const domW = elements.threads[wTid];
+        if (domW) domW.row.classList.add('thread-winner');
+
+        updateThreadDisplay(wTid, wPin);
+        elements.centerTitle.innerHTML =
+          `<span style="color:#00ffaa; text-shadow:0 0 12px #00ffaa">¡PIN REAL ENCONTRADO POR ${wTname}!</span>`;
+
+        elements.pairingStatusVal.textContent = '¡PIN Real Descifrado!';
+        elements.pairingStatusVal.className = 'status-val val-success';
+        elements.speedStatusVal.textContent = 'Proceso Real Completado';
+        elements.speedStatusVal.className = 'status-val val-success';
+        elements.threadsActiveVal.textContent = `REAL — ${wTname} GANADOR`;
+
+        playSuccessTone();
+
+        appendLog(`<span class="pfx-winner">[${wTname}] PIN REAL: ${wPin} → CORRECTO ✔</span>`);
+        appendLog('<span class="log-success">══════════════════════════════════════════════</span>');
+        appendLog(`<span class="log-success">[ÉXITO REAL] Smart TV desbloqueada con PIN: ${wPin}</span>`);
+        appendLog('<span class="log-success">══════════════════════════════════════════════</span>');
+
+        elements.tvSpinner.style.display = 'none';
+        elements.tvOverlay.innerHTML = `
+          <span style="color:#00ffaa; font-size:15px; font-weight:800; text-shadow:0 0 10px #00ffaa">✔ DESBLOQUEADO REAL</span>
+          <span style="color:#ffffff; font-size:11px; font-weight:bold; letter-spacing:1px">PIN: ${wPin} (${wTname})</span>
+        `;
+        elements.tvLed.style.background = '#00ffaa';
+        elements.tvLed.style.boxShadow = '0 0 14px #00ffaa';
+        break;
+      }
+
+      case 'paused':
+        STATE.status = 'PAUSED';
+        if (STATE.timerInterval) { clearInterval(STATE.timerInterval); STATE.timerInterval = null; }
+        elements.btnStart.classList.remove('active');
+        elements.btnPause.classList.add('active');
+        elements.threadsActiveVal.textContent = 'REAL — EN PAUSA';
+        appendLog('<span class="log-warn">[PAUSA REAL] Worker en espera.</span>');
+        break;
+
+      case 'resumed':
+        STATE.status = 'RUNNING';
+        STATE.startTime = Date.now() - STATE.elapsedMs;
+        if (!STATE.timerInterval) {
+          STATE.timerInterval = setInterval(() => {
+            STATE.elapsedMs = Date.now() - STATE.startTime;
+            elements.timerDisplay.textContent = formatTimer(STATE.elapsedMs);
+          }, 35);
+        }
+        elements.btnStart.classList.add('active');
+        elements.btnPause.classList.remove('active');
+        elements.threadsActiveVal.textContent = 'REAL — ACTIVO';
+        appendLog('<span class="log-ok">[REANUDADO] Worker real activo.</span>');
+        break;
+
+      case 'stopped':
+        STATE.status = 'STOPPED';
+        if (STATE.timerInterval) { clearInterval(STATE.timerInterval); STATE.timerInterval = null; }
+        elements.threadsActiveVal.textContent = 'REAL — DETENIDO';
+        break;
+
+      case 'exhausted':
+        STATE.status = 'STOPPED';
+        if (STATE.timerInterval) { clearInterval(STATE.timerInterval); STATE.timerInterval = null; }
+        appendLog(`<span class="log-fail">[AGOTADO] ${msg.message}</span>`);
+        appendLog(`<span class="log-warn">[INFO] Total de PINs probados: ${msg.total}</span>`);
+        elements.pairingStatusVal.textContent = 'PIN no encontrado';
+        elements.pairingStatusVal.className = 'status-val val-fail';
+        break;
+
+      case 'log': {
+        const lvlClass = {
+          ok: 'log-ok', warn: 'log-warn', error: 'log-fail', info: 'log-info'
+        }[msg.level] || '';
+        const styleAttr = lvlClass
+          ? `class="${lvlClass}"`
+          : 'style="color:#80deea"';
+        appendLog(`<span ${styleAttr}>${msg.text}</span>`);
+        break;
+      }
+    }
+  }
+
+  /* ── Event listener para los botones del modo real ── */
+  function initRealModeListeners() {
+    if (realEl.btnRealMode) {
+      realEl.btnRealMode.addEventListener('click', toggleRealMode);
+    }
+    if (realEl.btnRealConnect) {
+      realEl.btnRealConnect.addEventListener('click', connectRealTV);
+    }
+  }
+
+  // Patch init para agregar listeners del modo real
+  const _origInit = init;
+  function init() {
+    _origInit();
+    initRealModeListeners();
+  }
+
 })();
+

@@ -12,44 +12,87 @@ namespace OmniTVCrackerLauncher
         {
             try
             {
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string baseDir  = AppDomain.CurrentDomain.BaseDirectory;
                 string htmlFile = Path.Combine(baseDir, "index.html");
+                string serverPy = Path.Combine(baseDir, "server.py");
 
                 if (!File.Exists(htmlFile))
                 {
-                    MessageBox.Show("No se encontró el archivo index.html en:\n" + htmlFile,
-                        "Error - TV PIN Ultimate Codificador", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("No se encontró index.html en:\n" + htmlFile,
+                        "Error - OmniTVCracker", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                string fileUri = new Uri(htmlFile).AbsoluteUri;
+                // ── 1. Iniciar backend Python (server.py) si existe ──────────
+                if (File.Exists(serverPy) && IsPythonAvailable())
+                {
+                    try
+                    {
+                        var pyProc = new ProcessStartInfo("python", "\"" + serverPy + "\"")
+                        {
+                            UseShellExecute    = false,
+                            WorkingDirectory   = baseDir,
+                            CreateNoWindow     = true,
+                            WindowStyle        = ProcessWindowStyle.Minimized,
+                        };
+                        Process.Start(pyProc);
+                        // Breve pausa para que el servidor levante
+                        System.Threading.Thread.Sleep(1600);
+                    }
+                    catch
+                    {
+                        // Si no se puede arrancar el backend, continuar solo con simulación
+                    }
+                }
+
+                // ── 2. Abrir interfaz en Chrome ──────────────────────────────
+                string fileUri    = new Uri(htmlFile).AbsoluteUri;
                 string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe";
 
-                // 1. Try launching in Chrome with app mode or new window
                 if (File.Exists(chromePath))
                 {
                     try
                     {
-                        // Launch a dedicated new window
-                        Process.Start(new ProcessStartInfo(chromePath, "--new-window \"" + fileUri + "\"")
+                        Process.Start(new ProcessStartInfo(chromePath,
+                            "--new-window \"" + fileUri + "\"")
                         {
                             UseShellExecute = false
                         });
                         return;
                     }
-                    catch
-                    {
-                        // Fallback below
-                    }
+                    catch { /* Fallback abajo */ }
                 }
 
-                // 2. Fallback: ShellExecute with default browser
+                // ── 3. Fallback: navegador predeterminado ────────────────────
                 Process.Start(new ProcessStartInfo(htmlFile) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error al iniciar:\n" + ex.Message,
-                    "TV PIN Ultimate Codificador", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "OmniTVCracker", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Comprueba si Python está disponible en el PATH.
+        /// </summary>
+        static bool IsPythonAvailable()
+        {
+            try
+            {
+                var p = Process.Start(new ProcessStartInfo("python", "--version")
+                {
+                    UseShellExecute        = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError  = true,
+                    CreateNoWindow         = true
+                });
+                p.WaitForExit(3000);
+                return p.ExitCode == 0;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

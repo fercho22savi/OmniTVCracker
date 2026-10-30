@@ -21,13 +21,20 @@
     <!-- Top Bar Controls -->
     <div class="top-utility-bar">
       <div class="utility-left">
-        <span class="system-tag"><span class="pulse-dot"></span> PROTOTIPO V4.0 // MULTI-THREAD SIM</span>
+        <span class="system-tag" id="mode-tag"><span class="pulse-dot"></span> PROTOTIPO V4.0 // MULTI-THREAD SIM</span>
       </div>
       <div class="utility-right">
+        <!-- Backend status indicator -->
+        <span id="backend-status" class="backend-badge backend-offline" title="Estado del backend Python">
+          <span class="icon">⬡</span> BACKEND: OFFLINE
+        </span>
+        <button id="btn-real-mode" class="util-btn util-btn-real" title="Alternar entre Simulación y Modo Real (requiere backend Python)">
+          <span class="icon">🔌</span> MODO: <span id="real-mode-label">SIM</span>
+        </button>
         <button id="btn-audio" class="util-btn active" title="Alternar Sonido Sintetizado">
           <span class="icon">🔊</span> AUDIO: ON
         </button>
-        <button id="btn-speed" class="util-btn" title="Alternar Velocidad de Simulación">
+        <button id="btn-speed" class="util-btn" title="Alternar Velocidad de Simulación (solo modo SIM)">
           <span class="icon">⚡</span> VELOCIDAD: <span id="speed-indicator">NORMAL (1.6s)</span>
         </button>
         <button id="btn-target-pin" class="util-btn" title="Configurar PIN Objetivo">
@@ -115,6 +122,35 @@
                   <option value="001">001</option>
                   <option value="010">010</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Método ADB + Rango de PINs (visible solo en Modo Real) -->
+            <div id="real-mode-options" class="real-options-box" style="display:none;">
+              <div class="form-row">
+                <label class="form-label">Método ADB:</label>
+                <div class="custom-select-wrapper">
+                  <select id="adb-method-select" class="custom-select">
+                    <option value="text" selected>input text (rápido)</option>
+                    <option value="keyevent">keyevent (compatible)</option>
+                  </select>
+                  <div class="select-arrow">▼</div>
+                </div>
+              </div>
+              <div class="form-row-multi">
+                <div class="mini-field">
+                  <label class="form-label-mini">PIN inicio:</label>
+                  <input type="text" id="pin-start-input" class="custom-input mini-input" value="0000" maxlength="4" spellcheck="false">
+                </div>
+                <div class="mini-field">
+                  <label class="form-label-mini">PIN fin:</label>
+                  <input type="text" id="pin-end-input" class="custom-input mini-input" value="9999" maxlength="4" spellcheck="false">
+                </div>
+              </div>
+              <div class="form-row">
+                <button id="btn-real-connect" class="util-btn btn-real-connect-btn" style="width:100%; margin:4px 0;">
+                  <span class="icon">📡</span> CONECTAR AL TV
+                </button>
               </div>
             </div>
           </div>

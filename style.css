@@ -1223,3 +1223,114 @@ html, body {
     gap: 8px;
   }
 }
+
+
+/* =====================================================================
+   REAL MODE — Nuevos estilos para backend/modo real (v4.0-REAL)
+   ===================================================================== */
+
+/* Badge de estado del backend */
+.backend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.backend-offline {
+  color: #ff5252;
+  border-color: rgba(255, 82, 82, 0.4);
+  background: rgba(255, 82, 82, 0.08);
+  text-shadow: 0 0 6px rgba(255, 82, 82, 0.5);
+}
+
+.backend-online {
+  color: #00ffaa;
+  border-color: rgba(0, 255, 170, 0.5);
+  background: rgba(0, 255, 170, 0.08);
+  text-shadow: 0 0 8px rgba(0, 255, 170, 0.6);
+  animation: backend-pulse 2s ease-in-out infinite;
+}
+
+@keyframes backend-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 170, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(0, 255, 170, 0.15); }
+}
+
+/* Botón modo real */
+.util-btn-real {
+  border-color: rgba(255, 170, 0, 0.5) !important;
+  color: #ffaa00 !important;
+}
+
+.util-btn-real.real-active {
+  background: linear-gradient(160deg, rgba(255, 140, 0, 0.25), rgba(200, 90, 0, 0.2)) !important;
+  border-color: #ffaa00 !important;
+  color: #ffdd55 !important;
+  box-shadow: 0 0 12px rgba(255, 170, 0, 0.35) !important;
+}
+
+/* System tag en modo real */
+.system-tag.real-mode-active {
+  color: #ffaa00;
+  border-color: rgba(255, 170, 0, 0.4);
+  text-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+}
+
+/* Caja de opciones modo real en panel izquierdo */
+.real-options-box {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 170, 0, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 140, 0, 0.06);
+  animation: fadeInBox 0.3s ease;
+}
+
+@keyframes fadeInBox {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Botón de conectar al TV */
+.btn-real-connect-btn {
+  border-color: rgba(0, 229, 255, 0.6) !important;
+  color: #00e5ff !important;
+  font-size: 11px !important;
+  padding: 7px 12px !important;
+  justify-content: center;
+  text-align: center;
+}
+
+.btn-real-connect-btn:hover {
+  background: rgba(0, 229, 255, 0.15) !important;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.3) !important;
+}
+
+/* Indicador MODO REAL en header del panel central */
+.real-mode-indicator {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffaa00;
+  border: 1px solid rgba(255, 170, 0, 0.5);
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+}
+
+/* Log levels adicionales */
+.log-warn  { color: #ffd54f; }
+.log-sent  { color: #80deea; }
+.log-info  { color: #81d4fa; }
