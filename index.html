@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4-Digit PIN TV Codificador/Cracker Prototype</title>
+  
+  <!-- Google Fonts: Orbitron, Rajdhani, Share Tech Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas for dynamic cyber constellation background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-window">
+    
+    <!-- Top Bar Controls (Audio, Turbo speed, Fullscreen) -->
+    <div class="top-utility-bar">
+      <div class="utility-left">
+        <span class="system-tag"><span class="pulse-dot"></span> PROTOTIPO V3.8 // SEC-SIM</span>
+      </div>
+      <div class="utility-right">
+        <button id="btn-audio" class="util-btn active" title="Alternar Sonido Sintetizado">
+          <span class="icon">🔊</span> AUDIO: ON
+        </button>
+        <button id="btn-speed" class="util-btn" title="Alternar Velocidad de Simulación">
+          <span class="icon">⚡</span> VELOCIDAD: <span id="speed-indicator">NORMAL (1.5s)</span>
+        </button>
+        <button id="btn-start-pin" class="util-btn" title="Configurar PIN Inicial">
+          <span class="icon">🔢</span> INICIO: <span id="start-pin-val">0000</span>
+        </button>
+        <button id="btn-target-pin" class="util-btn" title="Configurar PIN Objetivo">
+          <span class="icon">🎯</span> OBJETIVO: <span id="target-pin-val">4381</span>
+        </button>
+        <button id="btn-demo-test" class="util-btn" title="Prueba rápida: inicia en 4378 para encontrar 4381 en 3 intentos">
+          <span class="icon">🧪</span> PROBAR ÉXITO
+        </button>
+        <button id="btn-fullscreen" class="util-btn" title="Pantalla Completa">
+          <span class="icon">⛶</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Title Header -->
+    <header class="app-header">
+      <h1 class="main-title">
+        <span class="cyan-glow">TV PIN</span> <span class="white-glow">CODENAME: ULTIMATE CODIFICADOR</span>
+      </h1>
+    </header>
+
+    <!-- Main 3-Column Dashboard -->
+    <main class="dashboard-grid">
+      
+      <!-- ================= LEFT PANEL ================= -->
+      <section class="panel glass-panel left-panel">
+        <div class="panel-header">
+          <h2>CONFIGURACIÓN DEL OBJETIVO</h2>
+        </div>
+        
+        <div class="panel-body">
+          <div class="config-form">
+            <!-- Dispositivo Dropdown -->
+            <div class="form-row">
+              <label for="device-select" class="form-label">Dispositivo:</label>
+              <div class="custom-select-wrapper">
+                <select id="device-select" class="custom-select">
+                  <option value="android" selected>Android TV</option>
+                  <option value="roku">Roku</option>
+                  <option value="samsung">Samsung Tizen</option>
+                  <option value="lg">LG webOS</option>
+                </select>
+                <div class="select-arrow">▼</div>
+              </div>
+            </div>
+
+            <!-- Dirección IP Input -->
+            <div class="form-row">
+              <label for="ip-address" class="form-label">Dirección IP:</label>
+              <div class="ip-group">
+                <input type="text" id="ip-address" class="custom-input" value="192.168.1.50" spellcheck="false" autocomplete="off">
+                <div id="conn-badge" class="status-badge badge-connected" title="Haz clic para alternar conexión">
+                  <span class="badge-icon">✔</span>
+                  <span class="badge-text">Conectado</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV Monitor Thumbnail with stand and loading spinner -->
+          <div class="tv-preview-container">
+            <div class="tv-frame">
+              <div class="tv-screen" id="tv-screen">
+                <div class="tv-screen-glare"></div>
+                <div class="tv-content">
+                  <!-- Animated 12-blade radial spinner -->
+                  <div class="tv-spinner" id="tv-spinner">
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                    <div class="blade"></div>
+                  </div>
+                  <div class="tv-pairing-overlay" id="tv-overlay">
+                    <span class="tv-device-brand" id="tv-device-label">ANDROID TV OS</span>
+                    <span class="tv-status-sub">Sincronizando puerto 5555...</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tv-bottom-bezel">
+                <span class="tv-brand-logo">SMARTLINK</span>
+                <span class="tv-led-indicator" id="tv-led"></span>
+              </div>
+            </div>
+            <!-- Metallic TV Base Stand -->
+            <div class="tv-stand-neck"></div>
+            <div class="tv-stand-base"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CENTER PANEL ================= -->
+      <section class="panel glass-panel center-panel">
+        <div class="panel-header">
+          <h2>ESTADO DEL PROCESO</h2>
+        </div>
+
+        <div class="panel-body center-body">
+          <!-- Subtitle -->
+          <div class="section-title" id="combination-label">COMBINACIÓN ACTUAL</div>
+
+          <!-- Massive Glowing Digital Counter Display -->
+          <div class="pin-display-container">
+            <div class="digit-card" id="digit-0">
+              <div class="digit-inner">
+                <span class="digit-value">4</span>
+                <div class="digit-divider"></div>
+              </div>
+            </div>
+            <div class="digit-card" id="digit-1">
+              <div class="digit-inner">
+                <span class="digit-value">3</span>
+                <div class="digit-divider"></div>
+              </div>
+            </div>
+            <div class="digit-card" id="digit-2">
+              <div class="digit-inner">
+                <span class="digit-value">8</span>
+                <div class="digit-divider"></div>
+              </div>
+            </div>
+            <div class="digit-card" id="digit-3">
+              <div class="digit-inner">
+                <span class="digit-value">1</span>
+                <div class="digit-divider"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar Section -->
+          <div class="progress-section">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progress-fill" style="width: 43.8%;">
+                <div class="progress-bar-glow"></div>
+              </div>
+            </div>
+            <div class="progress-text">
+              PROGRESO: <span id="progress-pct" class="glow-text">43.8%</span> (<span id="progress-count">4381</span> / 10000)
+            </div>
+          </div>
+
+          <!-- Password Timer Section -->
+          <div class="timer-section">
+            <div class="section-title timer-title">CRONÓMETRO DE CONTRASEÑAS</div>
+            <div class="digital-timer" id="timer-display">
+              01:13:22
+            </div>
+            <div class="timer-subtitle">Tiempo Transcurrido</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= RIGHT PANEL ================= -->
+      <section class="panel glass-panel right-panel">
+        <div class="panel-header">
+          <h2>REGISTRO DE INTENTOS</h2>
+        </div>
+
+        <div class="panel-body right-body">
+          <!-- Dark Monospace Terminal Box -->
+          <div class="terminal-container">
+            <div class="terminal-body" id="terminal-logs">
+              <div class="log-line log-ok">[OK] Conectado a 192.168.1.50</div>
+              <div class="log-line"><span class="log-attempt">[INTENTO 4378]</span> Enviando: 4378... <span class="log-fail">Fallido</span></div>
+              <div class="log-line"><span class="log-attempt">[INTENTO 4379]</span> Enviando: 4379... <span class="log-fail">Fallido</span></div>
+              <div class="log-line"><span class="log-attempt">[INTENTO 4380]</span> Enviando: 4380... <span class="log-fail">Fallido</span></div>
+              <div class="log-line"><span class="log-attempt">[INTENTO 4381]</span> Enviando: 4381...</div>
+              <div class="log-line log-waiting">Esperando respuesta<span class="cursor-blink">_</span></div>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Stacked Vertically) -->
+          <div class="action-buttons-group">
+            <button id="btn-start" class="btn btn-green">
+              <span class="btn-glow"></span>
+              <span class="btn-text">INICIAR PRUEBA</span>
+            </button>
+            <button id="btn-pause" class="btn btn-yellow active">
+              <span class="btn-glow"></span>
+              <span class="btn-text">PAUSAR</span>
+            </button>
+            <button id="btn-stop" class="btn btn-red">
+              <span class="btn-glow"></span>
+              <span class="btn-text">DETENER / REINICIAR</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Status Bar -->
+    <footer class="app-statusbar">
+      <div class="status-item">
+        <span class="status-icon icon-success">✔</span>
+        <span class="status-label">Estado de Red:</span>
+        <span class="status-val val-success" id="net-status-val">Conectado</span>
+      </div>
+      <div class="status-item">
+        <span class="status-icon icon-warn">⚠</span>
+        <span class="status-label">Emparejamiento:</span>
+        <span class="status-val val-warn" id="pairing-status-val">Autorizado</span>
+      </div>
+      <div class="status-item">
+        <span class="status-icon icon-speed">🚀</span>
+        <span class="status-label">Velocidad:</span>
+        <span class="status-val val-cyan" id="speed-status-val">1 intento / 1.5s</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Target PIN Modal Dialog -->
+  <div id="target-modal" class="modal-backdrop hidden">
+    <div class="modal-box glass-panel">
+      <div class="modal-header">
+        <h3>AJUSTAR PIN OBJETIVO (SIMULADOR)</h3>
+        <button id="modal-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Configura el PIN de 4 dígitos que simulará ser el PIN correcto de la TV:</p>
+        <div class="target-input-wrapper">
+          <input type="text" id="modal-pin-input" maxlength="4" value="4381" class="custom-input target-pin-input">
+        </div>
+        <p class="modal-hint">Cuando el contador alcance este valor, el sistema simulará el desbloqueo exitoso.</p>
+        <div class="modal-actions">
+          <button id="modal-save" class="btn btn-green">GUARDAR</button>
+          <button id="modal-cancel" class="btn btn-red">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
