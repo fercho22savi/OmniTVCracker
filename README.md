@@ -1,69 +1,207 @@
-# TV PIN CODENAME: ULTIMATE CODIFICADOR (Prototipo UI)
+<div align="center">
 
-Interfaz de usuario moderna y estilizada en modo oscuro para el prototipo de prueba y auditoría de códigos PIN de 4 dígitos en Smart TVs multimarca (Android TV, Roku, Samsung Tizen, LG webOS).
+```
+╔══════════════════════════════════════════════════════════════╗
+║   ████████╗██╗   ██╗    ██████╗ ██╗███╗   ██╗               ║
+║      ██╔══╝██║   ██║    ██╔══██╗██║████╗  ██║               ║
+║      ██║   ██║   ██║    ██████╔╝██║██╔██╗ ██║               ║
+║      ██║   ╚██╗ ██╔╝    ██╔═══╝ ██║██║╚██╗██║               ║
+║      ██║    ╚████╔╝     ██║     ██║██║ ╚████║               ║
+║      ╚═╝     ╚═══╝      ╚═╝     ╚═╝╚═╝  ╚═══╝               ║
+╚══════════════════════════════════════════════════════════════╝
+```
 
-Diseñado con estética de panel de ciberseguridad futurista: azul pizarra profundo, acentos en verde azulado/teal oscuro, pantallas digitales con brillo cian y paneles con efecto *glassmorphism*.
+# 🔐 TV PIN CODENAME: ULTIMATE CODIFICADOR `v4.0`
+
+### 〔 **PROTOTIPO UI** 〕 · 〔 **MULTI-THREAD SIM** 〕 · 〔 **5 HILOS SIMULTÁNEOS** 〕
+
+[![Version](https://img.shields.io/badge/versión-4.0%20Multi--Thread-00ffcc?style=for-the-badge&logo=buffer&logoColor=black)](.)
+[![Platform](https://img.shields.io/badge/plataforma-Smart%20TV%20Multi--Marca-0d6efd?style=for-the-badge&logo=tv&logoColor=white)](.)
+[![Status](https://img.shields.io/badge/estado-Prototipo%20UI-blueviolet?style=for-the-badge&logo=statuspage&logoColor=white)](.)
+[![License](https://img.shields.io/badge/licencia-Educacional-ff6b35?style=for-the-badge&logo=creative-commons&logoColor=white)](.)
 
 ---
 
-## 📸 Características del Diseño
+*Interfaz futurista de panel de ciberseguridad para simulación de auditoría de PINs en Smart TVs — diseño glassmorphism con 5 hilos de procesamiento en tiempo real.*
 
-- **Cabecera Principal:**
-  - Título central: `TV PIN CODENAME: ULTIMATE CODIFICADOR` con tipografía digital futurista y resplandor cian/blanco.
-  - Barra de utilidades: control de audio sintetizado, selector de velocidad, configuración de PIN objetivo y pantalla completa.
+</div>
 
-- **Panel Izquierdo ("CONFIGURACIÓN DEL OBJETIVO"):**
-  - Selector desplegable multimarca: `Android TV`, `Roku`, `Samsung Tizen` y `LG webOS`.
-  - Campo de entrada de dirección IP con indicador de estado `✔ Conectado` interactivo.
-  - Maqueta de monitor de TV con bisel metálico, peana y pantalla con animación radial de carga (spinner de 12 aspas).
+---
 
-- **Panel Central ("ESTADO DEL PROCESO"):**
-  - Gran contador digital de 4 dígitos (`4381`) en tarjetas divididas con brillo cian y animación de transición.
-  - Barra de progreso interactiva con degradado neón (`43.8% (4381 / 10000)`).
-  - Cronómetro digital de contraseñas (`01:13:22`) con contador en tiempo real.
+## 📸 Captura de Pantalla
 
-- **Panel Derecho ("REGISTRO DE INTENTOS"):**
-  - Terminal de consola en modo oscuro con líneas de registro coloreadas con scroll automático:
-    - `[OK] Conectado a 192.168.1.50`
-    - `[INTENTO 4381] Enviando: 4381... Fallido`
-    - Cursor parpadeante `_`
-  - Tres botones de acción ergonómicos:
-    - **INICIAR PRUEBA** (Verde esmeralda)
-    - **PAUSAR** (Amarillo / Dorado)
-    - **DETENER / REINICIAR** (Rojo carmesí)
+<div align="center">
 
-- **Barra de Estado Inferior:**
-  - `✔ Estado de Red: Conectado`
-  - `⚠ Emparejamiento: Autorizado`
-  - `🚀 Velocidad: 1 intento / 1.5s`
+![TV PIN Codename: Ultimate Codificador v4.0](screenshot.png)
+
+> *Vista del panel principal v4.0 — 5 hilos simultáneos en acción, PIN descifrado por Hilo 3*
+
+</div>
+
+---
+
+## ✨ Características Principales
+
+<table>
+<tr>
+<td width="50%">
+
+### 🖥️ Panel de Configuración
+- **Selector multimarca:** Android TV, Roku, Samsung Tizen, LG webOS
+- **Entrada de IP** con indicador `✔ Conectado` interactivo
+- **Maqueta de monitor TV** con animación de desbloqueo
+- Campos de puerto, subred y dirección IP secundaria
+
+</td>
+<td width="50%">
+
+### ⚡ Motor Multi-Thread v4.0
+- **5 hilos simultáneos** de fuerza bruta independientes
+- Cada hilo con **contador digital** y barra de progreso propia
+- Detección y resaltado automático del **hilo ganador**
+- Progreso global unificado con barra de degradado neón
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🎨 Diseño Futurista
+- Estética de **panel de ciberseguridad** oscuro
+- Tipografía digital con **resplandor cian/verde**
+- Paneles con efecto ***glassmorphism***
+- Acentos en teal oscuro y brillo neón
+
+</td>
+<td>
+
+### 📊 Monitoreo en Tiempo Real
+- **Cronómetro de contraseñas** `HH:MM:SS:ms`
+- Registro global de intentos por hilo
+- Indicadores de velocidad: Normal (1.6x), Rápido, Turbo
+- Display del PIN objetivo en barra superior
+
+</td>
+</tr>
+</table>
 
 ---
 
 ## 🚀 Cómo Ejecutar
 
-### Opción 1: Modo Aplicación de Escritorio (Recomendado)
-Haz doble clic en:
-- `launch.bat` (o ejecuta `.\launch.ps1` en PowerShell)
+<div align="center">
 
-Esto iniciará la interfaz en una ventana de escritorio independiente y limpia (sin barras de URL del navegador) usando Google Chrome o Microsoft Edge.
+```
+┌─────────────────────────────────────────────────────────┐
+│                   MÉTODOS DE INICIO                     │
+└─────────────────────────────────────────────────────────┘
+```
 
-### Opción 2: En cualquier Navegador Web
-Haz doble clic directamente en `index.html`.
+</div>
 
----
+### 🥇 Opción 1 — Ejecutable Directo *(Ultra Recomendado)*
 
-## 🎮 Controles e Interactividad
-
-| Control | Acción |
-|---|---|
-| **Espacio** | Alternar Iniciar / Pausar |
-| **R** | Detener y reiniciar contador a 0000 |
-| **Click en Conectado** | Alternar estado de conexión (Simula pérdida de enlace) |
-| **Selector Dispositivo** | Cambia perfiles (puertos 5555, 8060, 8002, 3001) |
-| **Botón VELOCIDAD** | Alternar entre Normal (1.5s), Rápido (0.4s) y Turbo (40ms) |
-| **Botón OBJETIVO** | Configurar el PIN exacto para simular el desbloqueo exitoso |
-| **Botón AUDIO** | Activar/desactivar retroalimentación sonora sintetizada |
+```
+📁 OmniTVCracker/
+└── 🖱️  OmniTVCracker.exe   ← Doble clic aquí
+```
+> Abre la interfaz en una **ventana de escritorio limpia** (sin barras del navegador) usando Chrome en modo app.
 
 ---
 
-*Aviso: Este software es un prototipo y simulador de interfaz gráfica de usuario con fines educativos, de diseño conceptual y pruebas de usabilidad.*
+### 🥈 Opción 2 — Script de Lanzamiento
+
+```powershell
+# PowerShell
+.\\launch.ps1
+
+# O simplemente doble clic en:
+launch.bat
+```
+> Inicia Chrome o Edge con la interfaz en modo aplicación independiente.
+
+---
+
+### 🥉 Opción 3 — Navegador Web Directo
+
+```
+📁 OmniTVCracker/
+└── 🌐  index.html   ← Doble clic aquí
+```
+> Abre la interfaz en tu navegador predeterminado.
+
+---
+
+## 🎮 Controles & Interactividad
+
+| Tecla / Control | ⚡ Acción |
+|:---:|:---|
+| `ESPACIO` | ▶️ Alternar **Iniciar / Pausar** todos los hilos |
+| `R` | 🔄 **Detener y reiniciar** contador a `0000` |
+| `Click en Conectado` | 📡 Simula **pérdida de enlace** de red |
+| `Selector Dispositivo` | 📺 Cambia perfil y puertos automáticamente |
+| `Botón VELOCIDAD` | 🚀 Alternar: **Normal** (1.5s) → **Rápido** (0.4s) → **Turbo** (40ms) |
+| `Botón OBJETIVO` | 🎯 Configurar el **PIN exacto** para simular desbloqueo exitoso |
+| `Botón AUDIO` | 🔊 Activar / desactivar **retroalimentación sonora** sintetizada |
+| `Botón PANTALLA COMPLETA` | 🖥️ Expandir interfaz a **pantalla completa** |
+
+---
+
+## 📺 Dispositivos Soportados
+
+| Plataforma | Puerto | Protocolo |
+|:---:|:---:|:---:|
+| 📱 **Android TV** | `5555` | ADB over TCP |
+| 📺 **Roku** | `8060` | ECP (External Control) |
+| 🌊 **Samsung Tizen** | `8002` | Smart View |
+| ⚡ **LG webOS** | `3001` | Remote Access |
+
+---
+
+## 🏗️ Estructura del Proyecto
+
+```
+📦 OmniTVCracker/
+├── 🌐  index.html          → Estructura principal de la UI
+├── 🎨  style.css           → Estilos futuristas glassmorphism
+├── ⚙️  app.js              → Motor multi-thread y lógica de simulación
+├── 🖱️  OmniTVCracker.exe   → Lanzador de escritorio (sin navegador UI)
+├── 📄  Launcher.cs         → Código fuente del lanzador (C#)
+├── 📜  launch.bat          → Script de inicio (Windows Batch)
+├── 💙  launch.ps1          → Script de inicio (PowerShell)
+├── 🔗  TV PIN Ultimate Codificador.url
+└── 📸  screenshot.png      → Captura de la interfaz v4.0
+```
+
+---
+
+## ⚙️ Stack Tecnológico
+
+<div align="center">
+
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![CSharp](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET_Framework-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+
+</div>
+
+---
+
+<div align="center">
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ⚠️  AVISO LEGAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Este software es un PROTOTIPO y SIMULADOR de
+  interfaz gráfica de usuario con fines
+  EDUCATIVOS, de diseño conceptual y pruebas
+  de usabilidad. No realiza conexiones reales.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+*Made with 💙 · TV PIN Codename: Ultimate Codificador v4.0*
+
+</div>
