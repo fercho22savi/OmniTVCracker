@@ -229,7 +229,29 @@
 
     // Si está pausado → reanudar
     if (STATE.status === 'PAUSED') {
-      sendWS({ cmd: 'resume' });
+      if (!sendWS({ cmd: 'resume' })) {
+        appendLog('<span class="log-fail">[ERROR] Backend offline — ejecuta launch.bat primero.</span>');
+      }
+      return;
+    }
+
+    // Verificar backend online
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      // Feedback visual: parpadear el badge de backend
+      if (E.backendStatus) {
+        E.backendStatus.style.animation = 'none';
+        E.backendStatus.style.border    = '1px solid #ff5252';
+        E.backendStatus.style.boxShadow = '0 0 12px rgba(255,82,82,0.8)';
+        setTimeout(() => {
+          if (E.backendStatus) { E.backendStatus.style.boxShadow = ''; E.backendStatus.style.border = ''; }
+        }, 1500);
+      }
+      appendLog('<span class="log-fail">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+      appendLog('<span class="log-fail">[BACKEND OFFLINE] No se puede iniciar sin el servidor Python.</span>');
+      appendLog('<span class="log-warn">[SOLUCIÓN] Cierra esto y ejecuta: launch.bat</span>');
+      appendLog('<span class="log-warn">           O desde PowerShell: .\\launch.ps1</span>');
+      appendLog('<span class="log-fail">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+      playCyberTone(220, 0.3, 'sawtooth', 0.12);
       return;
     }
 
@@ -240,57 +262,62 @@
     const pinStart = parseInt(E.pinStart ? (E.pinStart.value || '0')    : '0',    10);
     const pinEnd   = parseInt(E.pinEnd   ? (E.pinEnd.value   || '9999') : '9999', 10);
 
-    if (!ip) { appendLog('<span class="log-fail">[ERROR] Introduce la IP del TV.</span>'); return; }
+    if (!ip) {
+      appendLog('<span class="log-fail">[ERROR] Introduce la IP del TV antes de iniciar.</span>');
+      return;
+    }
 
     const sent = sendWS({ cmd: 'start', ip, port, device, entry_method: method, pin_start: pinStart, pin_end: pinEnd });
     if (!sent) return;
 
-    STATE.status   = 'RUNNING';
+    STATE.status    = 'RUNNING';
     STATE.elapsedMs = 0;
     STATE.startTime = Date.now();
 
-    // Cronómetro local
     clearInterval(STATE.timerInterval);
     STATE.timerInterval = setInterval(() => {
       STATE.elapsedMs = Date.now() - STATE.startTime;
-      E.timerDisplay.textContent = formatTimer(STATE.elapsedMs);
+      if (E.timerDisplay) E.timerDisplay.textContent = formatTimer(STATE.elapsedMs);
     }, 35);
 
     E.btnStart.classList.add('active');
     E.btnPause.classList.remove('active');
     E.btnStop.classList.remove('active');
-    E.tvSpinner.style.animationPlayState = 'running';
-    E.tvLed.style.background  = '#ffaa00';
-    E.tvLed.style.boxShadow   = '0 0 10px #ffaa00';
-    E.threadsActiveVal.textContent = '5 / 5 (REAL)';
+    if (E.tvSpinner) E.tvSpinner.style.animationPlayState = 'running';
+    if (E.tvLed)     { E.tvLed.style.background = '#ffaa00'; E.tvLed.style.boxShadow = '0 0 10px #ffaa00'; }
+    if (E.threadsActiveVal) E.threadsActiveVal.textContent = '5 / 5 (REAL)';
     playCyberTone(1200, 0.1, 'sine');
   }
 
   function pauseCracking() {
     if (STATE.status !== 'RUNNING') return;
-    sendWS({ cmd: 'pause' });
+    if (!sendWS({ cmd: 'pause' })) {
+      appendLog('<span class="log-fail">[ERROR] Backend offline.</span>');
+    }
   }
 
   function stopCracking() {
-    sendWS({ cmd: 'stop' });
+    // El stop SIEMPRE resetea la UI localmente, con o sin backend
+    sendWS({ cmd: 'stop' }); // intenta notificar al backend (puede fallar)
+
     clearInterval(STATE.timerInterval); STATE.timerInterval = null;
     STATE.status    = 'IDLE';
     STATE.elapsedMs = 0;
-    E.timerDisplay.textContent    = '00:00:00:00';
-    E.btnStart.classList.remove('active');
-    E.btnPause.classList.remove('active');
-    E.btnStop.classList.add('active');
-    E.centerTitle.textContent     = 'ESTADO DEL PROCESO (5 HILOS REALES)';
-    E.tvSpinner.style.display     = 'block';
-    E.tvLed.style.background      = '#00e5ff';
-    E.tvLed.style.boxShadow       = '0 0 8px #00e5ff';
-    E.pairingStatusVal.textContent= 'En espera';
-    E.pairingStatusVal.className  = 'status-val val-cyan';
-    E.speedStatusVal.textContent  = 'ADB Multi-Thread';
-    E.speedStatusVal.className    = 'status-val val-cyan';
-    E.threadsActiveVal.textContent= '5 / 5 (Listo)';
+
+    if (E.timerDisplay)         E.timerDisplay.textContent    = '00:00:00:00';
+    if (E.btnStart)             E.btnStart.classList.remove('active');
+    if (E.btnPause)             E.btnPause.classList.remove('active');
+    if (E.btnStop)              E.btnStop.classList.add('active');
+    if (E.centerTitle)          E.centerTitle.textContent     = 'ESTADO DEL PROCESO (5 HILOS REALES)';
+    if (E.tvSpinner)            E.tvSpinner.style.display     = 'block';
+    if (E.tvLed)                { E.tvLed.style.background    = '#00e5ff'; E.tvLed.style.boxShadow = '0 0 8px #00e5ff'; }
+    if (E.pairingStatusVal)     { E.pairingStatusVal.textContent = 'En espera'; E.pairingStatusVal.className = 'status-val val-cyan'; }
+    if (E.speedStatusVal)       { E.speedStatusVal.textContent  = 'ADB Multi-Thread'; E.speedStatusVal.className = 'status-val val-cyan'; }
+    if (E.threadsActiveVal)     E.threadsActiveVal.textContent = '5 / 5 (Listo)';
+
     resetAllThreads();
     playCyberTone(350, 0.15, 'sawtooth');
+    appendLog('<span style="color:#80deea">[RESET] UI reiniciada. Listo para nueva prueba.</span>');
   }
 
   function updateDeviceProfile() {
