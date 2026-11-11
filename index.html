@@ -3,71 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4-Digit PIN TV Codificador/Cracker Prototype v4.0</title>
-  
-  <!-- Google Fonts: Orbitron, Rajdhani, Share Tech Mono -->
+  <title>OmniTVCracker v4.0 — Real Mode</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Canvas for dynamic cyber constellation background -->
+  <!-- Canvas de fondo dinámico -->
   <canvas id="bg-canvas"></canvas>
 
   <div class="app-window">
-    
-    <!-- Top Bar Controls -->
+
+    <!-- ── Top Bar ── -->
     <div class="top-utility-bar">
       <div class="utility-left">
-        <span class="system-tag" id="mode-tag"><span class="pulse-dot"></span> PROTOTIPO V4.0 // MULTI-THREAD SIM</span>
+        <span class="system-tag real-mode-active">
+          <span class="pulse-dot"></span> OMNITVCRACKER v4.0 // 5-THREAD REAL MODE
+        </span>
       </div>
       <div class="utility-right">
-        <!-- Backend status indicator -->
-        <span id="backend-status" class="backend-badge backend-offline" title="Estado del backend Python">
+        <!-- Estado del backend Python -->
+        <span id="backend-status" class="backend-badge backend-offline" title="Estado del servidor Python">
           <span class="icon">⬡</span> BACKEND: OFFLINE
         </span>
-        <button id="btn-real-mode" class="util-btn util-btn-real" title="Alternar entre Simulación y Modo Real (requiere backend Python)">
-          <span class="icon">🔌</span> MODO: <span id="real-mode-label">SIM</span>
-        </button>
-        <button id="btn-audio" class="util-btn active" title="Alternar Sonido Sintetizado">
+        <button id="btn-audio" class="util-btn active" title="Alternar audio sintetizado">
           <span class="icon">🔊</span> AUDIO: ON
         </button>
-        <button id="btn-speed" class="util-btn" title="Alternar Velocidad de Simulación (solo modo SIM)">
-          <span class="icon">⚡</span> VELOCIDAD: <span id="speed-indicator">NORMAL (1.6s)</span>
-        </button>
-        <button id="btn-target-pin" class="util-btn" title="Configurar PIN Objetivo">
-          <span class="icon">🎯</span> OBJETIVO: <span id="target-pin-val">4381</span>
-        </button>
-        <button id="btn-demo-test" class="util-btn" title="Prueba rápida: Hilo #3 en 4378 para encontrar 4381 en 3 intentos">
-          <span class="icon">🧪</span> PROBAR ÉXITO
-        </button>
-        <button id="btn-fullscreen" class="util-btn" title="Pantalla Completa">
+        <button id="btn-fullscreen" class="util-btn" title="Pantalla completa">
           <span class="icon">⛶</span>
         </button>
       </div>
     </div>
 
-    <!-- Main Title Header -->
+    <!-- ── Main Title ── -->
     <header class="app-header">
       <h1 class="main-title">
         <span class="cyan-glow">TV PIN</span> <span class="white-glow">CODENAME: ULTIMATE CODIFICADOR v4.0</span>
       </h1>
     </header>
 
-    <!-- Main 3-Column Dashboard -->
+    <!-- ── Dashboard 3 columnas ── -->
     <main class="dashboard-grid">
-      
-      <!-- ================= LEFT PANEL ================= -->
+
+      <!-- ═══════════════ LEFT PANEL ═══════════════ -->
       <section class="panel glass-panel left-panel">
         <div class="panel-header">
           <h2>CONFIGURACIÓN DEL OBJETIVO</h2>
         </div>
-        
+
         <div class="panel-body left-body">
           <div class="config-form">
-            <!-- Dispositivo Dropdown -->
+
+            <!-- Dispositivo -->
             <div class="form-row">
               <label for="device-select" class="form-label">Dispositivo:</label>
               <div class="custom-select-wrapper">
@@ -81,268 +72,235 @@
               </div>
             </div>
 
-            <!-- Dirección IP Principal -->
+            <!-- IP + estado de conexión -->
             <div class="form-row">
               <label for="ip-address" class="form-label">Dirección IP:</label>
               <div class="ip-group">
-                <input type="text" id="ip-address" class="custom-input ip-input" value="192.168.1.50" spellcheck="false" autocomplete="off">
-                <div id="conn-badge" class="status-badge badge-connected" title="Haz clic para alternar conexión">
-                  <span class="badge-icon">✔</span>
-                  <span class="badge-text">Conectado</span>
+                <input type="text" id="ip-address" class="custom-input ip-input"
+                       value="192.168.1.50" spellcheck="false" autocomplete="off">
+                <div id="conn-badge" class="status-badge badge-disconnected">
+                  <span class="badge-icon">✖</span>
+                  <span class="badge-text">Sin conectar</span>
                 </div>
               </div>
             </div>
 
-            <!-- Puerto & Subred (v4.0 Multi-socket parameters) -->
+            <!-- Puerto -->
             <div class="form-row-multi">
               <div class="mini-field">
                 <label class="form-label-mini">Puerto:</label>
-                <input type="text" id="port-input" class="custom-input mini-input" value="4500" spellcheck="false">
+                <input type="text" id="port-input" class="custom-input mini-input"
+                       value="5555" spellcheck="false">
               </div>
               <div class="mini-field">
-                <label class="form-label-mini">Subred:</label>
-                <select id="subnet-select" class="custom-select mini-select">
-                  <option value="3000" selected>3000</option>
-                  <option value="2000">2000</option>
-                  <option value="1000">1000</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Dirección IP Secundaria & Subred Auxiliar -->
-            <div class="form-row-multi">
-              <div class="mini-field">
-                <label class="form-label-mini">Dirección IP':</label>
-                <input type="text" id="ip-aux-input" class="custom-input mini-input" value="192.168.1.50" spellcheck="false">
-              </div>
-              <div class="mini-field">
-                <label class="form-label-mini">Subredd:</label>
-                <select id="subredd-select" class="custom-select mini-select">
-                  <option value="000" selected>000</option>
-                  <option value="001">001</option>
-                  <option value="010">010</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Método ADB + Rango de PINs (visible solo en Modo Real) -->
-            <div id="real-mode-options" class="real-options-box" style="display:none;">
-              <div class="form-row">
-                <label class="form-label">Método ADB:</label>
+                <label class="form-label-mini">Método ADB:</label>
                 <div class="custom-select-wrapper">
-                  <select id="adb-method-select" class="custom-select">
-                    <option value="text" selected>input text (rápido)</option>
-                    <option value="keyevent">keyevent (compatible)</option>
+                  <select id="adb-method-select" class="custom-select mini-select">
+                    <option value="text" selected>input text</option>
+                    <option value="keyevent">keyevent</option>
                   </select>
                   <div class="select-arrow">▼</div>
                 </div>
               </div>
-              <div class="form-row-multi">
-                <div class="mini-field">
-                  <label class="form-label-mini">PIN inicio:</label>
-                  <input type="text" id="pin-start-input" class="custom-input mini-input" value="0000" maxlength="4" spellcheck="false">
-                </div>
-                <div class="mini-field">
-                  <label class="form-label-mini">PIN fin:</label>
-                  <input type="text" id="pin-end-input" class="custom-input mini-input" value="9999" maxlength="4" spellcheck="false">
-                </div>
+            </div>
+
+            <!-- Rango de PINs -->
+            <div class="form-row-multi">
+              <div class="mini-field">
+                <label class="form-label-mini">PIN inicio:</label>
+                <input type="text" id="pin-start-input" class="custom-input mini-input"
+                       value="0000" maxlength="4" spellcheck="false">
               </div>
-              <div class="form-row">
-                <button id="btn-real-connect" class="util-btn btn-real-connect-btn" style="width:100%; margin:4px 0;">
-                  <span class="icon">📡</span> CONECTAR AL TV
-                </button>
+              <div class="mini-field">
+                <label class="form-label-mini">PIN fin:</label>
+                <input type="text" id="pin-end-input" class="custom-input mini-input"
+                       value="9999" maxlength="4" spellcheck="false">
               </div>
             </div>
+
+            <!-- Botón conectar -->
+            <div class="form-row">
+              <button id="btn-real-connect" class="util-btn btn-real-connect-btn" style="width:100%;margin-top:6px;">
+                <span class="icon">📡</span> CONECTAR AL TV
+              </button>
+            </div>
+
           </div>
 
-          <!-- TV Monitor Thumbnail with stand and loading spinner -->
+          <!-- Monitor TV (maqueta visual) -->
           <div class="tv-preview-container">
             <div class="tv-frame">
               <div class="tv-screen" id="tv-screen">
                 <div class="tv-screen-glare"></div>
                 <div class="tv-content">
-                  <!-- Animated 12-blade radial spinner -->
                   <div class="tv-spinner" id="tv-spinner">
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
-                    <div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
+                    <div class="blade"></div><div class="blade"></div>
                   </div>
                   <div class="tv-pairing-overlay" id="tv-overlay">
                     <span class="tv-device-brand" id="tv-device-label">ANDROID TV OS</span>
-                    <span class="tv-status-sub">Sincronizando 5 sockets...</span>
+                    <span class="tv-status-sub">En espera de conexión...</span>
                   </div>
                 </div>
               </div>
               <div class="tv-bottom-bezel">
-                <span class="tv-brand-logo">SMARTLINK 5x</span>
+                <span class="tv-brand-logo">OMNICRACKER 5x</span>
                 <span class="tv-led-indicator" id="tv-led"></span>
               </div>
             </div>
-            <!-- Metallic TV Base Stand -->
             <div class="tv-stand-neck"></div>
             <div class="tv-stand-base"></div>
           </div>
         </div>
       </section>
 
-      <!-- ================= CENTER PANEL: ESTADO MULTI-HILO ================= -->
+      <!-- ═══════════════ CENTER PANEL ═══════════════ -->
       <section class="panel glass-panel center-panel">
         <div class="panel-header">
-          <h2 id="center-panel-title">ESTADO DEL PROCESO (MULTI-HILO)</h2>
+          <h2 id="center-panel-title">ESTADO DEL PROCESO (5 HILOS REALES)</h2>
         </div>
 
         <div class="panel-body center-body">
-          
-          <!-- Contenedor de 5 Hilos Simultáneos -->
+
+          <!-- 5 Hilos -->
           <div class="threads-list-container" id="threads-container">
-            
-            <!-- HILO 1 (VERDE - Rango 0000 - 1999) -->
+
+            <!-- HILO 1 — 0000-1999 -->
             <div class="thread-row thread-green" id="thread-row-0">
               <div class="thread-badge">[HILO 1]</div>
               <div class="thread-digits" id="thread-digits-0">
                 <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">4</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">1</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">2</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
               </div>
               <div class="thread-progress-box">
                 <div class="thread-bar-track">
-                  <div class="thread-bar-fill fill-green" id="t-fill-0" style="width: 20.6%;"></div>
+                  <div class="thread-bar-fill fill-green" id="t-fill-0" style="width:0%"></div>
                 </div>
-                <div class="thread-pct-label" id="t-label-0">20.6% (0412/2000)</div>
+                <div class="thread-pct-label" id="t-label-0">0.0% (0000/2000)</div>
               </div>
             </div>
 
-            <!-- HILO 2 (AZUL - Rango 2000 - 3999) -->
+            <!-- HILO 2 — 2000-3999 -->
             <div class="thread-row thread-blue" id="thread-row-1">
               <div class="thread-badge">[HILO 2]</div>
               <div class="thread-digits" id="thread-digits-1">
                 <div class="t-digit"><span class="t-digit-val">2</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">9</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">8</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
                 <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
               </div>
               <div class="thread-progress-box">
                 <div class="thread-bar-track">
-                  <div class="thread-bar-fill fill-blue" id="t-fill-1" style="width: 49.0%;"></div>
+                  <div class="thread-bar-fill fill-blue" id="t-fill-1" style="width:0%"></div>
                 </div>
-                <div class="thread-pct-label" id="t-label-1">49.0% (2980/4000)</div>
+                <div class="thread-pct-label" id="t-label-1">0.0% (2000/4000)</div>
               </div>
             </div>
 
-            <!-- HILO 3 (AMARILLO - Rango 4000 - 5999) -->
+            <!-- HILO 3 — 4000-5999 -->
             <div class="thread-row thread-yellow" id="thread-row-2">
               <div class="thread-badge">[HILO 3]</div>
               <div class="thread-digits" id="thread-digits-2">
                 <div class="t-digit"><span class="t-digit-val">4</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">3</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">8</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">1</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
               </div>
               <div class="thread-progress-box">
                 <div class="thread-bar-track">
-                  <div class="thread-bar-fill fill-yellow" id="t-fill-2" style="width: 19.0%;"></div>
+                  <div class="thread-bar-fill fill-yellow" id="t-fill-2" style="width:0%"></div>
                 </div>
-                <div class="thread-pct-label" id="t-label-2">19.0% (4381/6000)</div>
+                <div class="thread-pct-label" id="t-label-2">0.0% (4000/6000)</div>
               </div>
             </div>
 
-            <!-- HILO 4 (MAGENTA - Rango 6000 - 7999) -->
+            <!-- HILO 4 — 6000-7999 -->
             <div class="thread-row thread-magenta" id="thread-row-3">
               <div class="thread-badge">[HILO 4]</div>
               <div class="thread-digits" id="thread-digits-3">
-                <div class="t-digit"><span class="t-digit-val">7</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">1</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">6</span><div class="t-divider"></div></div>
                 <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">5</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
               </div>
               <div class="thread-progress-box">
                 <div class="thread-bar-track">
-                  <div class="thread-bar-fill fill-magenta" id="t-fill-3" style="width: 55.2%;"></div>
+                  <div class="thread-bar-fill fill-magenta" id="t-fill-3" style="width:0%"></div>
                 </div>
-                <div class="thread-pct-label" id="t-label-3">55.2% (7105/8000)</div>
+                <div class="thread-pct-label" id="t-label-3">0.0% (6000/8000)</div>
               </div>
             </div>
 
-            <!-- HILO 5 (CIAN - Rango 8000 - 9999) -->
+            <!-- HILO 5 — 8000-9999 -->
             <div class="thread-row thread-cyan" id="thread-row-4">
               <div class="thread-badge">[HILO 5]</div>
               <div class="thread-digits" id="thread-digits-4">
-                <div class="t-digit"><span class="t-digit-val">9</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">2</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">3</span><div class="t-divider"></div></div>
-                <div class="t-digit"><span class="t-digit-val">4</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">8</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
+                <div class="t-digit"><span class="t-digit-val">0</span><div class="t-divider"></div></div>
               </div>
               <div class="thread-progress-box">
                 <div class="thread-bar-track">
-                  <div class="thread-bar-fill fill-cyan" id="t-fill-4" style="width: 61.7%;"></div>
+                  <div class="thread-bar-fill fill-cyan" id="t-fill-4" style="width:0%"></div>
                 </div>
-                <div class="thread-pct-label" id="t-label-4">61.7% (9234/10000)</div>
+                <div class="thread-pct-label" id="t-label-4">0.0% (8000/10000)</div>
               </div>
             </div>
 
           </div>
 
-          <!-- Barra de Progreso Global Unificada -->
+          <!-- Progreso Global -->
           <div class="progress-section">
             <div class="progress-bar-track">
-              <div class="progress-bar-fill" id="global-progress-fill" style="width: 41.1%;">
+              <div class="progress-bar-fill" id="global-progress-fill" style="width:0%">
                 <div class="progress-bar-glow"></div>
               </div>
             </div>
             <div class="progress-text">
-              PROGRESO GLOBAL: <span id="global-progress-pct" class="glow-text">41.1%</span> (<span id="global-progress-count">4118</span> / 10000)
+              PROGRESO GLOBAL: <span id="global-progress-pct" class="glow-text">0.0%</span>
+              (<span id="global-progress-count">0</span> / 10000)
             </div>
           </div>
 
-          <!-- Cronómetro de Alta Precisión -->
+          <!-- Cronómetro -->
           <div class="timer-section">
             <div class="section-title timer-title">CRONÓMETRO DE CONTRASEÑAS</div>
-            <div class="digital-timer" id="timer-display">
-              00:03:15:20
-            </div>
+            <div class="digital-timer" id="timer-display">00:00:00:00</div>
             <div class="timer-subtitle">(horas:minutos:segundos:milisegundos)</div>
           </div>
 
         </div>
       </section>
 
-      <!-- ================= RIGHT PANEL: REGISTRO QUINTUPLICADO ================= -->
+      <!-- ═══════════════ RIGHT PANEL ═══════════════ -->
       <section class="panel glass-panel right-panel">
         <div class="panel-header">
-          <h2>REGISTRO DE INTENTOS QUINTUPLICADO</h2>
+          <h2>REGISTRO DE INTENTOS REALES</h2>
         </div>
 
         <div class="panel-body right-body">
-          <!-- Terminal con prefijos coloreados por hilo -->
           <div class="terminal-container">
             <div class="terminal-body" id="terminal-logs">
-              <div class="log-line log-ok">[OK] Conectado a 192.168.1.50 (5 Sockets Activos)</div>
-              <div class="log-line"><span class="pfx-green">[HILO 1: VERDE]</span> INTENTO: 0412... <span class="log-fail">Fallido</span></div>
-              <div class="log-line"><span class="pfx-blue">[HILO 2: AZUL]</span> INTENTO: 2980... <span class="log-fail">Fallido</span></div>
-              <div class="log-line"><span class="pfx-yellow">[HILO 3: AMARILLO]</span> INTENTO: 4381... <span class="log-fail">Fallido</span></div>
-              <div class="log-line"><span class="pfx-magenta">[HILO 4: MAGENTA]</span> INTENTO: 7105... <span class="log-fail">Fallido</span></div>
-              <div class="log-line"><span class="pfx-cyan">[HILO 5: CIAN]</span> INTENTO: 9234... <span class="log-fail">Fallido</span></div>
-              <div class="log-line log-waiting">Sincronizando hilos paralelos<span class="cursor-blink">_</span></div>
+              <div class="log-line" style="color:#80deea">[SISTEMA] OmniTVCracker v4.0 — Modo Real</div>
+              <div class="log-line" style="color:#80deea">[INFO] Esperando conexión al backend Python...</div>
+              <div class="log-line log-waiting">Inicializando<span class="cursor-blink">_</span></div>
             </div>
           </div>
 
-          <!-- Botones de Acción (Fijos en la parte inferior) -->
+          <!-- Botones de acción -->
           <div class="action-buttons-group">
             <button id="btn-start" class="btn btn-green">
               <span class="btn-glow"></span>
               <span class="btn-text">INICIAR PRUEBA</span>
             </button>
-            <button id="btn-pause" class="btn btn-yellow active">
+            <button id="btn-pause" class="btn btn-yellow">
               <span class="btn-glow"></span>
               <span class="btn-text">PAUSAR</span>
             </button>
@@ -356,55 +314,34 @@
 
     </main>
 
-    <!-- Bottom Status Bar -->
+    <!-- ── Status Bar ── -->
     <footer class="app-statusbar">
       <div class="status-item">
         <span class="status-icon icon-success">✔</span>
         <span class="status-label">Estado de Red:</span>
-        <span class="status-val val-success" id="net-status-val">Conectado (5 Threads)</span>
+        <span class="status-val" id="net-status-val">Sin conectar</span>
       </div>
       <div class="status-item">
         <span class="status-icon icon-warn">⚠</span>
-        <span class="status-label">Emparejamiento:</span>
-        <span class="status-val val-warn" id="pairing-status-val">Autorizado</span>
+        <span class="status-label">TV:</span>
+        <span class="status-val val-cyan" id="pairing-status-val">En espera</span>
       </div>
       <div class="status-item">
-        <span class="status-icon icon-speed">🚀</span>
-        <span class="status-label">Velocidad Efectiva:</span>
-        <span class="status-val val-cyan" id="speed-status-val">5 intentos / 1.6s (3.12 Hz)</span>
+        <span class="status-icon icon-speed">🔧</span>
+        <span class="status-label">Protocolo:</span>
+        <span class="status-val val-cyan" id="speed-status-val">ADB Multi-Thread</span>
       </div>
       <div class="status-item telemetry-item">
         <span class="status-label">🧵 Hilos Activos:</span>
-        <span class="status-val val-cyan" id="threads-active-val">5 / 5</span>
+        <span class="status-val val-cyan" id="threads-active-val">5 / 5 (Listo)</span>
       </div>
       <div class="status-item telemetry-metrics">
-        <span class="metrics-tag">Load: 323.3 MHz</span>
-        <span class="metrics-tag">CPU: 5.0 MP/s</span>
-        <span class="metrics-tag">SATX: 3.96%</span>
+        <span class="metrics-tag">MODE: REAL</span>
+        <span class="metrics-tag">ADB: v4.0</span>
+        <span class="metrics-tag">THREADS: 5</span>
       </div>
     </footer>
 
-  </div>
-
-  <!-- Target PIN Modal Dialog -->
-  <div id="target-modal" class="modal-backdrop hidden">
-    <div class="modal-box glass-panel">
-      <div class="modal-header">
-        <h3>AJUSTAR PIN OBJETIVO (MULTI-HILO)</h3>
-        <button id="modal-close" class="modal-close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Configura el PIN de 4 dígitos a descifrar (0000 - 9999):</p>
-        <div class="target-input-wrapper">
-          <input type="text" id="modal-pin-input" maxlength="4" value="4381" class="custom-input target-pin-input">
-        </div>
-        <p class="modal-hint">El hilo correspondiente a su rango (ej: Hilo #3 para 4000-5999) lo encontrará y detendrá automáticamente los 4 hilos restantes.</p>
-        <div class="modal-actions">
-          <button id="modal-save" class="btn btn-green">GUARDAR</button>
-          <button id="modal-cancel" class="btn btn-red">CANCELAR</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script src="app.js"></script>
